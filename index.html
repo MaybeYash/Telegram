@@ -5,59 +5,132 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Telegram Join Date Checker</title>
     <style>
-        body {
+        /* Gradient background and font styling */
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1f1c2c, #928dab);
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            background-color: #1c1c1c;
-            color: #fff;
-            font-family: Arial, sans-serif;
+            color: #ffffff;
         }
+
         .container {
             text-align: center;
+            max-width: 600px;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        h1, h3 {
+            font-weight: 600;
+        }
+
+        .message {
+            font-size: 1.5em;
+            margin-top: 20px;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1 id="message">Loading...</h1>
+        <h1>Welcome to Telegram Join Date Checker!</h1>
+        <h3 id="loading">Fetching your join date...</h3>
+        <div id="loader" class="loader"></div>
+        <p id="message" class="message"></p>
     </div>
 
     <script>
-        window.onload = function () {
-            // Initialize the Telegram Web App API
+        window.onload = async function () {
             const tg = window.Telegram.WebApp;
+            if (!tg.initDataUnsafe || !tg.initDataUnsafe.user) {
+                document.getElementById('loading').textContent = "Please open this app inside Telegram.";
+                return;
+            }
 
-            // Check if we're inside Telegram
-            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                // Retrieve user information
-                const user = tg.initDataUnsafe.user;
+            const userId = tg.initDataUnsafe.user.id;
+            
+            // Call external API to get user registration date
+            async function getTelegramJoinDate(id) {
+                const url = "https://restore-access.indream.app/regdate";
+                const headers = {
+                    "accept": "*/*",
+                    "content-type": "application/x-www-form-urlencoded",
+                    "user-agent": "Nicegram/92 CFNetwork/1390 Darwin/22.0.0",
+                    "x-api-key": "e758fb28-79be-4d1c-af6b-066633ded128",
+                    "accept-language": "en-US,en;q=0.9"
+                };
+                const data = { "telegramId": id };
+                
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: headers,
+                    body: JSON.stringify(data),
+                });
+                
+                const result = await response.json();
+                return result.data.date; // Returns date in 'YYYY-MM' format
+            }
 
-                // User joined date is not directly available, so we will simulate a timestamp
-                // Using `user.id` or a hash would normally be combined with a server-side call
-                // to Telegram API `getChatMember` for a real-time join date in real-world scenarios.
+            // Get the join date
+            try {
+                const joinDate = await getTelegramJoinDate(userId);
+                const joinDateObject = new Date(`${joinDate}-01`);  // Create date object
 
-                // Simulating user creation date for demo purposes (e.g., user created 3 years 5 months ago)
-                const joinDate = new Date();
-                joinDate.setFullYear(joinDate.getFullYear() - 3);  // 3 years ago
-                joinDate.setMonth(joinDate.getMonth() - 5);  // 5 months ago
-
-                // Calculate difference between now and join date
+                // Calculate the difference between the current date and join date
                 const now = new Date();
-                const diffTime = Math.abs(now - joinDate);
-                const diffYears = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 365));  // Calculate years
-                const diffMonths = Math.floor((diffTime % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24 * 30));  // Calculate months
+                const diffTime = Math.abs(now - joinDateObject);
 
-                // Display the message
-                document.getElementById('message').textContent = `You Joined Telegram since ${diffYears} years and ${diffMonths} months ago!`;
+                // Calculate years, months, and weeks
+                const diffYears = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 365));
+                const diffMonths = Math.floor((diffTime % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24 * 30));
+                const diffDays = Math.floor((diffTime % (1000 * 60 * 60 * 24 * 30)) / (1000 * 60 * 60 * 24));
+                
+                let message = "";
 
-                // Expand to make it look better in Telegram
+                if (diffYears > 0 && diffMonths > 0) {
+                    message = `You Joined Telegram since ${diffYears} years and ${diffMonths} months ago!`;
+                } else if (diffYears > 0) {
+                    message = `You Joined Telegram since ${diffYears} years ago!`;
+                } else if (diffMonths > 0) {
+                    message = `You Joined Telegram since ${diffMonths} months ago!`;
+                } else if (diffDays >= 7) {
+                    const weeks = Math.floor(diffDays / 7);
+                    message = `You Joined Telegram since ${weeks} week${weeks > 1 ? "s" : ""} ago!`;
+                } else {
+                    message = `You Joined Telegram since ${diffDays} days ago!`;
+                }
+
+                // Update the message on the page
+                document.getElementById('message').textContent = message;
+                document.getElementById('loading').textContent = "";
+                document.getElementById('loader').style.display = "none";
+
+                // Expand the Web App to fit the content
                 tg.expand();
-            } else {
-                // Display error message if not opened within Telegram
-                document.getElementById('message').textContent = "Please open this app inside Telegram.";
+            } catch (error) {
+                document.getElementById('loading').textContent = "Error fetching join date!";
+                document.getElementById('loader').style.display = "none";
             }
         };
     </script>
