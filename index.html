@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Join Date Checker</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #1c1c1c;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            text-align: center;
+        }
+    </style>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1 id="message">Loading...</h1>
+    </div>
+
+    <script>
+        window.onload = function () {
+            // Initialize the Telegram Web App API
+            const tg = window.Telegram.WebApp;
+
+            // Check if we're inside Telegram
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                // Retrieve user information
+                const user = tg.initDataUnsafe.user;
+
+                // User joined date is not directly available, so we will simulate a timestamp
+                // Using `user.id` or a hash would normally be combined with a server-side call
+                // to Telegram API `getChatMember` for a real-time join date in real-world scenarios.
+
+                // Simulating user creation date for demo purposes (e.g., user created 3 years 5 months ago)
+                const joinDate = new Date();
+                joinDate.setFullYear(joinDate.getFullYear() - 3);  // 3 years ago
+                joinDate.setMonth(joinDate.getMonth() - 5);  // 5 months ago
+
+                // Calculate difference between now and join date
+                const now = new Date();
+                const diffTime = Math.abs(now - joinDate);
+                const diffYears = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 365));  // Calculate years
+                const diffMonths = Math.floor((diffTime % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24 * 30));  // Calculate months
+
+                // Display the message
+                document.getElementById('message').textContent = `You Joined Telegram since ${diffYears} years and ${diffMonths} months ago!`;
+
+                // Expand to make it look better in Telegram
+                tg.expand();
+            } else {
+                // Display error message if not opened within Telegram
+                document.getElementById('message').textContent = "Please open this app inside Telegram.";
+            }
+        };
+    </script>
+</body>
+</html>
