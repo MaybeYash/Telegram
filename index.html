@@ -15,15 +15,17 @@
             justify-content: center;
             align-items: center;
             color: #ffffff;
+            flex-direction: column; /* Center container and button */
         }
 
         .container {
             text-align: center;
-            max-width: 400px; /* Reduced the maximum width */
-            padding: 15px; /* Reduced padding */
+            max-width: 500px; /* Slightly increased width */
+            padding: 20px; /* Increased padding */
             border-radius: 15px;
             box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2);
             background: rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px; /* Space for Close button */
         }
 
         h1, h3 {
@@ -31,18 +33,35 @@
         }
 
         .message {
-            font-size: 1.2em; /* Adjusted font size for smaller container */
-            margin-top: 15px; /* Reduced top margin */
+            font-size: 1.3em; /* Slightly larger font size */
+            margin-top: 20px;
         }
 
         .loader {
             border: 4px solid #f3f3f3;
             border-top: 4px solid #3498db;
             border-radius: 50%;
-            width: 25px; /* Reduced loader size */
-            height: 25px;
+            width: 30px;
+            height: 30px;
             animation: spin 1s linear infinite;
             margin: auto;
+        }
+
+        .close-button {
+            padding: 10px 20px;
+            font-size: 1em;
+            font-weight: bold;
+            color: #ffffff;
+            background: #3498db;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+            transition: background 0.3s;
+        }
+
+        .close-button:hover {
+            background: #2978b5;
         }
 
         @keyframes spin {
@@ -54,11 +73,14 @@
 </head>
 <body>
     <div class="container">
-        <h1>Flow : Beyond</h1>
+        <h1>Welcome to Telegram Join Date Checker!</h1>
         <h3 id="loading">Fetching your join date...</h3>
         <div id="loader" class="loader"></div>
         <p id="message" class="message"></p>
     </div>
+
+    <!-- Close button below the container -->
+    <button class="close-button" onclick="closeWebApp()">Close</button>
 
     <script>
         window.onload = async function () {
@@ -138,6 +160,12 @@
                 document.getElementById('loader').style.display = "none";
             }
         };
+
+        // Function to close the Telegram web app
+        function closeWebApp() {
+            const tg = window.Telegram.WebApp;
+            tg.close(); // Close the web app
+        }
     </script>
 </body>
 </html>
