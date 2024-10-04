@@ -69,9 +69,8 @@
             }
 
             const userId = tg.initDataUnsafe.user.id;
-            
-            // Call external API to get user registration date
-            async function getTelegramJoinDate(id) {
+
+            async function getCreationDate(id) {
                 const url = "https://restore-access.indream.app/regdate";
                 const headers = {
                     "accept": "*/*",
@@ -81,53 +80,59 @@
                     "accept-language": "en-US,en;q=0.9"
                 };
                 const data = { "telegramId": id };
-                
-                const response = await fetch(url, {
-                    method: "POST",
-                    headers: headers,
-                    body: JSON.stringify(data),
-                });
-                
-                const result = await response.json();
-                return result.data.date; // Returns date in 'YYYY-MM' format
+
+                try {
+                    const response = await fetch(url, {
+                        method: "POST",
+                        headers: headers,
+                        body: JSON.stringify(data),
+                    });
+
+                    const result = await response.json();
+                    if (result && result.data && result.data.date) {
+                        return result.data.date;
+                    } else {
+                        throw new Error("Failed to retrieve date");
+                    }
+                } catch (error) {
+                    return "N/A";
+                }
             }
 
-            // Get the join date
             try {
-                const joinDate = await getTelegramJoinDate(userId);
-                const joinDateObject = new Date(`${joinDate}-01`);  // Create date object
+                const joinDate = await getCreationDate(userId);
 
-                // Calculate the difference between the current date and join date
-                const now = new Date();
-                const diffTime = Math.abs(now - joinDateObject);
+                if (joinDate !== "N/A") {
+                    const [joinYear, joinMonth] = joinDate.split('-').map(Number);
+                    const joinDateObject = new Date(joinYear, joinMonth - 1, 1);
+                    const now = new Date();
 
-                // Calculate years, months, and weeks
-                const diffYears = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 365));
-                const diffMonths = Math.floor((diffTime % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24 * 30));
-                const diffDays = Math.floor((diffTime % (1000 * 60 * 60 * 24 * 30)) / (1000 * 60 * 60 * 24));
-                
-                let message = "";
+                    // Calculate the difference in years and months
+                    let diffYears = now.getFullYear() - joinDateObject.getFullYear();
+                    let diffMonths = now.getMonth() - joinDateObject.getMonth();
 
-                if (diffYears > 0 && diffMonths > 0) {
-                    message = `You Joined Telegram since ${diffYears} years and ${diffMonths} months ago!`;
-                } else if (diffYears > 0) {
-                    message = `You Joined Telegram since ${diffYears} years ago!`;
-                } else if (diffMonths > 0) {
-                    message = `You Joined Telegram since ${diffMonths} months ago!`;
-                } else if (diffDays >= 7) {
-                    const weeks = Math.floor(diffDays / 7);
-                    message = `You Joined Telegram since ${weeks} week${weeks > 1 ? "s" : ""} ago!`;
+                    if (diffMonths < 0) {
+                        diffYears -= 1;
+                        diffMonths += 12;
+                    }
+
+                    let message = "";
+
+                    if (diffYears > 0) {
+                        message = `You Joined Telegram since ${diffYears} year${diffYears > 1 ? "s" : ""} and ${diffMonths} month${diffMonths > 1 ? "s" : ""} ago!`;
+                    } else {
+                        message = `You Joined Telegram since ${diffMonths} month${diffMonths > 1 ? "s" : ""} ago!`;
+                    }
+
+                    document.getElementById('message').textContent = message;
                 } else {
-                    message = `You Joined Telegram since ${diffDays} days ago!`;
+                    document.getElementById('message').textContent = "Could not retrieve your join date.";
                 }
 
-                // Update the message on the page
-                document.getElementById('message').textContent = message;
                 document.getElementById('loading').textContent = "";
                 document.getElementById('loader').style.display = "none";
-
-                // Expand the Web App to fit the content
                 tg.expand();
+
             } catch (error) {
                 document.getElementById('loading').textContent = "Error fetching join date!";
                 document.getElementById('loader').style.display = "none";
