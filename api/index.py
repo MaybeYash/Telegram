@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify
 import requests
 from datetime import datetime
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder="../templates")
 
 def get_creation_date(id: int) -> str:
     url = "https://restore-access.indream.app/regdate"
@@ -47,5 +47,4 @@ def get_join_date():
     except Exception as e:
         return jsonify({"message": str(e)}), 500
 
-if __name__ == '__main__':
-    app.run(debug=True)
+app = app
