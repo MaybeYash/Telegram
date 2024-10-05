@@ -80,7 +80,7 @@
                 return
             }
             const userId = tg.initDataUnsafe.user.id
-            const response = await fetch('/get_join_date', {
+            const response = await fetch('/api/get_join_date', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user_id: userId })
